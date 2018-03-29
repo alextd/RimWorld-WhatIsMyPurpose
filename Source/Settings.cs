@@ -8,7 +8,7 @@ namespace What_Is_My_Purpose
 {
 	class Settings : ModSettings
 	{
-		public bool multiGizmos = true;
+		public int multiGizmoLimit = 6;
 
 		public static Settings Get()
 		{
@@ -17,7 +17,8 @@ namespace What_Is_My_Purpose
 
 		public bool ShowGizmos()
 		{
-			return multiGizmos || Find.Selector.SelectedObjects.Count == 1;
+			int count = Find.Selector.SelectedObjects.Count;
+			return count == 1 || count <= multiGizmoLimit;
 		}
 
 		public void DoWindowContents(Rect wrect)
@@ -25,7 +26,9 @@ namespace What_Is_My_Purpose
 			var options = new Listing_Standard();
 			options.Begin(wrect);
 			
-			options.CheckboxLabeled("Show job gizmo with multiple selected", ref multiGizmos);
+			options.Label(String.Format("Show Target Gizmo with up to this many colonists selected: {0}", multiGizmoLimit));
+			multiGizmoLimit = (int)options.Slider(multiGizmoLimit, 1, 100);
+			
 			options.Gap();
 
 			options.End();
@@ -33,7 +36,7 @@ namespace What_Is_My_Purpose
 		
 		public override void ExposeData()
 		{
-			Scribe_Values.Look(ref multiGizmos, "multiGizmos", true);
+			Scribe_Values.Look(ref multiGizmoLimit, "multiGizmoLimit", 6);
 		}
 	}
 }
