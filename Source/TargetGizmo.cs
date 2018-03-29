@@ -69,7 +69,7 @@ namespace What_Is_My_Purpose
 			GUI.color = Color.white;
 			GUI.DrawTexture(rect, Command.BGTex);
 
-			if (!targetB.IsUsed() && !targetC.IsUsed())
+			if (Find.Selector.SelectedObjects.Count == 1 && !targetB.IsUsed() && !targetC.IsUsed())
 			{
 				clicked = DoButton(targetA.IsUsed() ? targetA : pawnInfo, rect, 0.85f);
 			}
