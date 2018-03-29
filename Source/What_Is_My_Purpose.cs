@@ -18,15 +18,15 @@ namespace What_Is_My_Purpose
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 		}
 
-		// public override void DoSettingsWindowContents(Rect inRect)
-		// {
-			// base.DoSettingsWindowContents(inRect);
-			// GetSettings<Settings>().DoWindowContents(inRect);
-		// }
+		public override void DoSettingsWindowContents(Rect inRect)
+		{
+			base.DoSettingsWindowContents(inRect);
+			GetSettings<Settings>().DoWindowContents(inRect);
+		}
 
-		// public override string SettingsCategory()
-		// {
-			// return "What Is My Purpose";
-		// }
+		public override string SettingsCategory()
+		{
+			return "What Is My Purpose";
+		}
 	}
 }

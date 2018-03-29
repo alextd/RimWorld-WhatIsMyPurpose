@@ -144,7 +144,7 @@ namespace What_Is_My_Purpose
 	{
 		public override IEnumerable<Gizmo> CompGetGizmosExtra()
 		{
-			if (this.parent is Pawn gizmoPawn)
+			if (this.parent is Pawn gizmoPawn && Settings.Get().ShowGizmos())
 			{
 				Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
 
@@ -157,7 +157,7 @@ namespace What_Is_My_Purpose
 						gizmo.pawnInfo.proportions = new Vector2(gizmo.pawnInfo.icon.width, gizmo.pawnInfo.icon.height);
 					}
 
-					gizmo.defaultLabel = gizmoPawn.CurJob.def.reportString.Split(' ').FirstOrDefault();
+					gizmo.defaultLabel = gizmoPawn.jobs.curDriver.GetReport().Split(' ').FirstOrDefault();
 					gizmo.defaultLabel.TrimEnd('.');
 					AddTargetToGizmo(gizmo, gizmoPawn, TargetIndex.A);
 					AddTargetToGizmo(gizmo, gizmoPawn, TargetIndex.B);
