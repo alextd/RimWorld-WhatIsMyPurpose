@@ -133,6 +133,8 @@ namespace What_Is_My_Purpose
 			
 			return false;
 		}
+
+		public override bool GroupsWith(Gizmo other) => false;
 	}
 
 	[StaticConstructorOnStartup]
