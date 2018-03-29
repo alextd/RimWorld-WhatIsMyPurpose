@@ -142,11 +142,15 @@ namespace What_Is_My_Purpose
 	{
 		public static readonly Texture2D PosTargetIcon = ContentFinder<Texture2D>.Get("UI/Designators/Claim", true);
 	}
-	public class CompWhatIsMyPurpose : ThingComp
+
+	[HarmonyPatch(typeof(Pawn), "GetGizmos")]
+	static class Pawn_GetGizmos_Postfix
 	{
-		public override IEnumerable<Gizmo> CompGetGizmosExtra()
+		//[HarmonyPriority(Priority.Last)]
+		private static void Postfix(Pawn __instance, ref IEnumerable<Gizmo> __result)
 		{
-			if (this.parent is Pawn gizmoPawn && Settings.Get().ShowGizmos())
+			Pawn gizmoPawn = __instance;
+			if (gizmoPawn.IsColonistPlayerControlled && Settings.Get().ShowGizmos())
 			{
 				Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
 
@@ -168,11 +172,15 @@ namespace What_Is_My_Purpose
 				else
 					gizmo.defaultLabel = "ActivityIconIdle".Translate();
 
-				yield return gizmo;
+				List<Gizmo> results = new List<Gizmo>();
+				foreach (Gizmo g in __result)
+					results.Add(g);
+				results.Add(gizmo);
+				__result = results;
 			}
 		}
 
-		public void AddTargetToGizmo(Command_CenterOnTarget gizmo, Pawn gizmoPawn, TargetIndex ind)
+		public static void AddTargetToGizmo(Command_CenterOnTarget gizmo, Pawn gizmoPawn, TargetIndex ind)
 		{
 			LocalTargetInfo targetInfo = gizmoPawn.CurJob.GetTarget(ind);
 			PurposeInfo purposeInfo = new PurposeInfo()
