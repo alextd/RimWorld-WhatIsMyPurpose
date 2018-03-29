@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/ThingDef [@Name ="BasePawn"]/comps</xpath>
+		<value>
+			<li><compClass>What_Is_My_Purpose.CompWhatIsMyPurpose</compClass></li>
+		</value>
+	</Operation>
+
+</Patch>
