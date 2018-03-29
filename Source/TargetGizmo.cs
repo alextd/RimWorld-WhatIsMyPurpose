@@ -146,7 +146,7 @@ namespace What_Is_My_Purpose
 	[HarmonyPatch(typeof(Pawn), "GetGizmos")]
 	static class Pawn_GetGizmos_Postfix
 	{
-		//[HarmonyPriority(Priority.Last)]
+		[HarmonyPriority(Priority.Last)]
 		private static void Postfix(Pawn __instance, ref IEnumerable<Gizmo> __result)
 		{
 			Pawn gizmoPawn = __instance;
