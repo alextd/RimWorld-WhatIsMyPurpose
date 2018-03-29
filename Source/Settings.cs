@@ -28,7 +28,9 @@ namespace What_Is_My_Purpose
 			
 			options.Label(String.Format("Show Target Gizmo with up to this many colonists selected: {0}", multiGizmoLimit));
 			multiGizmoLimit = (int)options.Slider(multiGizmoLimit, 1, 100);
-			
+
+			options.Label("(The order of gizmos from other mods can be erratic ; blame the game for not providing gizmo ordering)");
+
 			options.Gap();
 
 			options.End();
