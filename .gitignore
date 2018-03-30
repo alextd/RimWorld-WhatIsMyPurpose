@@ -1,6 +1,6 @@
 .vs
 *.cache
 Source/obj
-/Assemblies/What_Is_My_Purpose.dll
+/Assemblies/*
 /About/About.xml
 *.csproj.user
