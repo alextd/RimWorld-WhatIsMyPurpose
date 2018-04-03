@@ -19,7 +19,8 @@ namespace What_Is_My_Purpose
 
 		public bool ShowGizmos()
 		{
-			int count = Find.Selector.SelectedObjects.Count;
+			if (!(Find.UIRoot is UIRoot_Play)) return false;
+			int count = Find.Selector.NumSelected;
 			return count == 1 || count <= multiGizmoLimit;
 		}
 
