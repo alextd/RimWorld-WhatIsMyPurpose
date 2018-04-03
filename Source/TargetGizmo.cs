@@ -10,9 +10,16 @@ using RimWorld;
 
 namespace What_Is_My_Purpose
 {
+
+	[StaticConstructorOnStartup]
+	public static class TexPurposeTarget
+	{
+		public static readonly Texture2D PosTargetIcon = ContentFinder<Texture2D>.Get("UI/Designators/Claim", true);
+	}
+
 	public class PurposeInfo
 	{
-		public IntVec3 pos;
+		public Vector3? pos;
 		public Color color;
 		public Texture icon;
 		public float scale;
@@ -21,7 +28,7 @@ namespace What_Is_My_Purpose
 
 		public PurposeInfo()
 		{
-			pos = IntVec3.Invalid;
+			pos = null;
 			color = Color.white;
 			icon = TexPurposeTarget.PosTargetIcon;
 			scale = 1.0f;
@@ -31,23 +38,106 @@ namespace What_Is_My_Purpose
 
 		public bool IsUsed()
 		{
-			return pos != IntVec3.Invalid;
+			return pos != null;
+		}
+		
+		public static void AddTargetToGizmo(Command_CenterOnTarget gizmo, LocalTargetInfo targetInfo, TargetIndex ind = TargetIndex.A)
+		{
+			PurposeInfo purposeInfo = Make(targetInfo);
+			if (targetInfo.HasThing && purposeInfo.pos == null)
+				purposeInfo.pos = gizmo.selectedInfo.pos;
+			if (purposeInfo.IsUsed())
+			{
+				gizmo.SetTarget(ind, purposeInfo);
+			}
+		}
+
+		public static PurposeInfo Make(LocalTargetInfo targetInfo)
+		{
+			PurposeInfo purposeInfo = new PurposeInfo();
+			if(targetInfo.IsValid)
+			{
+				purposeInfo.pos = targetInfo.CenterVector3;
+			}
+			if (targetInfo.Thing is Thing target)
+			{
+				target = MinifyUtility.GetInnerIfMinified(target);
+				BuildableDef def = target.def;
+
+				purposeInfo.pos = target.DrawPos;
+				purposeInfo.color = target.DrawColor;
+
+				if (target is Pawn || target is Corpse)
+				{
+					Pawn pawn = target as Pawn;
+					if (pawn == null)
+					{
+						pawn = ((Corpse)target).InnerPawn;
+					}
+					if (!pawn.RaceProps.Humanlike)
+					{
+						//This seems unnecessary
+						//if (!pawn.Drawer.renderer.graphics.AllResolved)
+						//{
+						//	pawn.Drawer.renderer.graphics.ResolveAllGraphics();
+						//}
+						Material matSingle = pawn.Drawer.renderer.graphics.nakedGraphic.MatSingle;
+						purposeInfo.icon = matSingle.mainTexture;
+						purposeInfo.color = matSingle.color;
+					}
+					else
+					{
+						purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
+					}
+					purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
+				}
+				else
+				{
+					if (target is IConstructible buildThing)
+					{
+						def = target.def.entityDefToBuild;
+						if (buildThing.UIStuff() != null)
+							purposeInfo.color = buildThing.UIStuff().stuffProps.color;
+						else
+							purposeInfo.color = def.IconDrawColor;
+					}
+
+					purposeInfo.icon = def.uiIcon;
+
+					if (def is ThingDef td)
+					{
+						purposeInfo.proportions = td.graphicData.drawSize;
+						purposeInfo.scale = GenUI.IconDrawScale(td);
+					}
+
+					if (def is TerrainDef)
+						//private static readonly Vector2 TerrainTextureCroppedSize = new Vector2(64f, 64f);
+						purposeInfo.texCoords = new Rect(0f, 0f, 64f / purposeInfo.icon.width, 64f / purposeInfo.icon.height);
+					else if (def.uiIconPath.NullOrEmpty())
+					{
+						Material iconMat = def.graphic.MatSingle;
+						purposeInfo.texCoords = new Rect(iconMat.mainTextureOffset, iconMat.mainTextureScale);
+					}
+				}
+			}
+			return purposeInfo;
 		}
 	}
+	//Also known as Command_CenterOnReserver
 	public class Command_CenterOnTarget : Command
 	{
-		public IntVec3 clickedPos;
+		public Vector3? clickedPos;
 
 		public PurposeInfo targetA = new PurposeInfo();
 		public PurposeInfo targetB = new PurposeInfo();
 		public PurposeInfo targetC = new PurposeInfo();
-		public PurposeInfo pawnInfo = new PurposeInfo();
+		public PurposeInfo selectedInfo = new PurposeInfo();
 
 		public override void ProcessInput(Event ev)
 		{
 			base.ProcessInput(ev);
-			if (clickedPos != IntVec3.Invalid)
-				Current.CameraDriver.JumpToVisibleMapLoc(clickedPos);
+			if (clickedPos != null)
+				Current.CameraDriver.JumpToVisibleMapLoc(clickedPos.Value);
 		}
 
 		public void SetTarget(TargetIndex ind, PurposeInfo info)
@@ -63,7 +153,7 @@ namespace What_Is_My_Purpose
 		public override GizmoResult GizmoOnGUI(Vector2 topLeft)
 		{
 			bool clicked = false;
-			clickedPos = IntVec3.Invalid;
+			clickedPos = null;
 			
 			Rect rect = new Rect(topLeft.x, topLeft.y, Width, Height);
 			GUI.color = Color.white;
@@ -71,7 +161,7 @@ namespace What_Is_My_Purpose
 
 			if (Find.Selector.SelectedObjects.Count == 1 && !targetB.IsUsed() && !targetC.IsUsed())
 			{
-				clicked = DoButton(targetA.IsUsed() ? targetA : pawnInfo, rect, 0.85f);
+				clicked = DoButton(targetA.IsUsed() ? targetA : selectedInfo, rect, 0.85f);
 			}
 			else
 			{
@@ -87,7 +177,7 @@ namespace What_Is_My_Purpose
 				GUI.color = Color.white;
 				GUI.DrawTexture(rect, Command.BGTex);
 
-				clicked |= DoButton(pawnInfo, rectPortrait);
+				clicked |= DoButton(selectedInfo, rectPortrait);
 				clicked |= DoButton(targetA, rectA);
 				clicked |= DoButton(targetB, rectB);
 				clicked |= DoButton(targetC, rectC);
@@ -125,7 +215,7 @@ namespace What_Is_My_Purpose
 			//GUI.DrawTexture(rect, Command.BGTex);
 			Widgets.DrawTextureFitted(rect, icon, scale * purposeInfo.scale, purposeInfo.proportions, purposeInfo.texCoords);
 
-			if (Widgets.ButtonInvisible(rect, false))
+			if (Widgets.ButtonInvisible(rect, false) || Mouse.IsOver(rect) && Input.GetMouseButton(0))
 			{
 				clickedPos = purposeInfo.pos;
 				return true;
@@ -137,125 +227,73 @@ namespace What_Is_My_Purpose
 		public override bool GroupsWith(Gizmo other) => false;
 	}
 
-	[StaticConstructorOnStartup]
-	public static class TexPurposeTarget
-	{
-		public static readonly Texture2D PosTargetIcon = ContentFinder<Texture2D>.Get("UI/Designators/Claim", true);
-	}
-
 	[HarmonyPatch(typeof(Pawn), "GetGizmos")]
 	static class Pawn_GetGizmos_Postfix
 	{
 		[HarmonyPriority(Priority.Last)]
 		private static void Postfix(Pawn __instance, ref IEnumerable<Gizmo> __result)
 		{
-			Pawn gizmoPawn = __instance;
-			if (gizmoPawn.IsColonistPlayerControlled && Settings.Get().ShowGizmos())
-			{
+			Log.Message("Pawn postfix");
+			if (!Settings.Get().ShowGizmos()) return;
+
+			if (__instance is Pawn gizmoPawn && gizmoPawn.IsColonistPlayerControlled)
+			{ 
+				Log.Message("Pawn postfix for " + gizmoPawn);
 				Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
 
-				gizmo.pawnInfo.pos = gizmoPawn.Position;
+				gizmo.selectedInfo = PurposeInfo.Make(gizmoPawn);
 				if (gizmoPawn.CurJob != null)
 				{
-					if (gizmoPawn.CurJob.targetA.IsValid)
-					{
-						gizmo.pawnInfo.icon = PortraitsCache.Get(gizmoPawn, ColonistBarColonistDrawer.PawnTextureSize / 2, default(Vector3), 1.5f);
-						gizmo.pawnInfo.proportions = new Vector2(gizmo.pawnInfo.icon.width, gizmo.pawnInfo.icon.height);
-					}
-
 					gizmo.defaultLabel = gizmoPawn.jobs.curDriver.GetReport().Split(' ').FirstOrDefault();
 					gizmo.defaultLabel.TrimEnd('.');
-					AddTargetToGizmo(gizmo, gizmoPawn, TargetIndex.A);
-					AddTargetToGizmo(gizmo, gizmoPawn, TargetIndex.B);
-					AddTargetToGizmo(gizmo, gizmoPawn, TargetIndex.C);
+					PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.A), TargetIndex.A);
+					PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.B), TargetIndex.B);
+					PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.C), TargetIndex.C);
 				}
 				else
 					gizmo.defaultLabel = "ActivityIconIdle".Translate();
-
+				
 				List<Gizmo> results = new List<Gizmo>();
 				foreach (Gizmo g in __result)
 					results.Add(g);
-				results.Add(gizmo);
+				results.Add(gizmo);	//last is rightmost 
 				__result = results;
 			}
 		}
+	}
 
-		public static void AddTargetToGizmo(Command_CenterOnTarget gizmo, Pawn gizmoPawn, TargetIndex ind)
+	[HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
+	static class ThingWithComps_GetGizmos_Postfix
+	{
+		[HarmonyPriority(Priority.First)]
+		private static void Postfix(ThingWithComps __instance, ref IEnumerable<Gizmo> __result)
 		{
-			LocalTargetInfo targetInfo = gizmoPawn.CurJob.GetTarget(ind);
-			PurposeInfo purposeInfo = new PurposeInfo()
+			Log.Message("ThingWithComps postfix for " + __instance);
+			if (!Settings.Get().ShowGizmos()) return;
+			
+			ThingWithComps thing = __instance;
+			Pawn sampleColonist = thing.Map?.mapPawns?.FreeColonists?.FirstOrDefault();
+			if (sampleColonist == null) return;
+			Log.Message("sampleColonist  is " + sampleColonist);
+			Log.Message("thing.Map  is " + thing.Map);
+
+			Pawn reserver = thing.Map?.reservationManager?.FirstRespectedReserver(thing, sampleColonist);
+			if (reserver == null) return;
+			Log.Message("reserver  is " + reserver);
+
+			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
-				pos = targetInfo.Cell	//Or null
+				selectedInfo = PurposeInfo.Make(thing),
+				defaultLabel = "Reserved"
+				//defaultLabel = reserver.NameStringShort
 			};
-			if (targetInfo.Thing is Thing target)
-			{
-				target = MinifyUtility.GetInnerIfMinified(target);
-				BuildableDef def = target.def;
-				if (target.Spawned)	
-					purposeInfo.pos = target.Position;
-				else
-					purposeInfo.pos = gizmoPawn.Position;
+			PurposeInfo.AddTargetToGizmo(gizmo, reserver);
 
-				purposeInfo.color = target.DrawColor;
-
-				if (target is Pawn || target is Corpse)
-				{
-					Pawn pawn = target as Pawn;
-					if (pawn == null)
-					{
-						pawn = ((Corpse)target).InnerPawn;
-					}
-					if (!pawn.RaceProps.Humanlike)
-					{
-						//This seems unnecessary
-						//if (!pawn.Drawer.renderer.graphics.AllResolved)
-						//{
-						//	pawn.Drawer.renderer.graphics.ResolveAllGraphics();
-						//}
-						Material matSingle = pawn.Drawer.renderer.graphics.nakedGraphic.MatSingle;
-						purposeInfo.icon = matSingle.mainTexture;
-						purposeInfo.color = matSingle.color;
-					}
-					else
-					{
-						purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
-					}
-					purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
-				}
-				else
-				{
-					if (target is IConstructible buildThing)
-					{
-						def = target.def.entityDefToBuild;
-						if (buildThing.UIStuff() != null)
-							purposeInfo.color = buildThing.UIStuff().stuffProps.color;
-						else
-							purposeInfo.color = def.IconDrawColor;
-					}
-					
-					purposeInfo.icon = def.uiIcon;
-					
-					if (def is ThingDef td)
-					{
-						purposeInfo.proportions = td.graphicData.drawSize;
-						purposeInfo.scale = GenUI.IconDrawScale(td);
-					}
-					
-					if (def is TerrainDef)
-						//private static readonly Vector2 TerrainTextureCroppedSize = new Vector2(64f, 64f);
-						purposeInfo.texCoords = new Rect(0f, 0f, 64f / purposeInfo.icon.width, 64f / purposeInfo.icon.height);
-					else if (def.uiIconPath.NullOrEmpty())
-					{
-						Material iconMat = def.graphic.MatSingle;
-						purposeInfo.texCoords = new Rect(iconMat.mainTextureOffset, iconMat.mainTextureScale);
-					}
-				}
-			}
-
-			if (purposeInfo.IsUsed())
-			{
-				gizmo.SetTarget(ind, purposeInfo);
-			}
+			List<Gizmo> results = new List<Gizmo>();
+			results.Add(gizmo);		//first is leftmost
+			foreach (Gizmo g in __result)
+				results.Add(g);
+			__result = results;
 		}
 	}
 }
