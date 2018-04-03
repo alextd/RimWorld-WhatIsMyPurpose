@@ -29,8 +29,8 @@ namespace What_Is_My_Purpose
 			var options = new Listing_Standard();
 			options.Begin(wrect);
 
-			options.CheckboxLabeled("Show gizmo showing colonist's job", ref purposeGizmos);
-			options.CheckboxLabeled("Show gizmo showing who is using a thing", ref reservedGizmos);
+			options.CheckboxLabeled("Gizmo showing selected colonist's job", ref purposeGizmos);
+			options.CheckboxLabeled("Gizmo showing who is using a selected thing", ref reservedGizmos);
 
 			options.Label(String.Format("Show Target Gizmo with up to this many selected: {0}", multiGizmoLimit));
 			multiGizmoLimit = (int)options.Slider(multiGizmoLimit, 1, 100);
