@@ -235,7 +235,6 @@ namespace What_Is_My_Purpose
 	{
 		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
 		{
-			Log.Message("TRANSPILING");
 			MethodInfo GizmoClearInfo = AccessTools.Method(typeof(List<Gizmo>), "Clear");
 			FieldInfo objListInfo = AccessTools.Field(AccessTools.TypeByName("InspectGizmoGrid"), "objList");
 			FieldInfo gizmoListInfo = AccessTools.Field(AccessTools.TypeByName("InspectGizmoGrid"), "gizmoList");
@@ -248,7 +247,6 @@ namespace What_Is_My_Purpose
 				yield return i;
 				if (i.opcode == OpCodes.Callvirt && i.operand == GizmoClearInfo)
 				{
-					Log.Message("FOUND");
 					//gizmoList.AddRange(GetMyGizmos(objList));
 					yield return new CodeInstruction(OpCodes.Ldsfld, gizmoListInfo);
 					yield return new CodeInstruction(OpCodes.Ldsfld, objListInfo);
@@ -260,10 +258,8 @@ namespace What_Is_My_Purpose
 
 		public static IEnumerable<Gizmo> GetPurposeGizmos(List<object> objList)
 		{
-			Log.Message("GetPurposeGizmos");
 			if (!Settings.Get().ShowGizmos()) yield break;
 
-			Log.Message("oblst " + objList.ToStringSafeEnumerable());
 			if (Settings.Get().purposeGizmos)
 				foreach (object obj in objList)
 					if (obj is Pawn pawn && PurposeGizmoFor(pawn) is Gizmo gizmo)
