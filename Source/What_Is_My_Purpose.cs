@@ -16,6 +16,9 @@ namespace What_Is_My_Purpose
 #endif
 			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.What_Is_My_Purpose.main");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+			harmony.Patch(AccessTools.Method(AccessTools.TypeByName("InspectGizmoGrid"), "DrawInspectGizmoGridFor"),
+				null, null, new HarmonyMethod(typeof(DrawInspectGizmoGridFor_Patch), "Transpiler"));
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)

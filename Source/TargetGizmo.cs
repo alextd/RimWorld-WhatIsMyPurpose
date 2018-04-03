@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
+using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
 using Harmony;
@@ -226,60 +228,81 @@ namespace What_Is_My_Purpose
 
 		public override bool GroupsWith(Gizmo other) => false;
 	}
+	
 
-	[HarmonyPatch(typeof(Pawn), "GetGizmos")]
-	static class Pawn_GetGizmos_Postfix
+	//[HarmonyPatch(AccessTools.TypeByName("InspectGizmoGrid"), "DrawInspectGizmoGridFor")]
+	static class DrawInspectGizmoGridFor_Patch
 	{
-		[HarmonyPriority(Priority.Last)]
-		private static void Postfix(Pawn __instance, ref IEnumerable<Gizmo> __result)
+		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
 		{
-			Log.Message("Pawn postfix");
-			if (!Settings.Get().ShowGizmos()) return;
+			Log.Message("TRANSPILING");
+			MethodInfo GizmoClearInfo = AccessTools.Method(typeof(List<Gizmo>), "Clear");
+			FieldInfo objListInfo = AccessTools.Field(AccessTools.TypeByName("InspectGizmoGrid"), "objList");
+			FieldInfo gizmoListInfo = AccessTools.Field(AccessTools.TypeByName("InspectGizmoGrid"), "gizmoList");
+			
+			MethodInfo GizmoAddRangeInfo = AccessTools.Method(typeof(List<Gizmo>), "AddRange");
+			MethodInfo GetMyGizmosInfo = AccessTools.Method(typeof(DrawInspectGizmoGridFor_Patch), nameof(DrawInspectGizmoGridFor_Patch.GetPurposeGizmos));
 
-			if (__instance is Pawn gizmoPawn && gizmoPawn.IsColonistPlayerControlled)
+			foreach (CodeInstruction i in codeInstructions)
 			{ 
-				Log.Message("Pawn postfix for " + gizmoPawn);
-				Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
-
-				gizmo.selectedInfo = PurposeInfo.Make(gizmoPawn);
-				if (gizmoPawn.CurJob != null)
+				yield return i;
+				if (i.opcode == OpCodes.Callvirt && i.operand == GizmoClearInfo)
 				{
-					gizmo.defaultLabel = gizmoPawn.jobs.curDriver.GetReport().Split(' ').FirstOrDefault();
-					gizmo.defaultLabel.TrimEnd('.');
-					PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.A), TargetIndex.A);
-					PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.B), TargetIndex.B);
-					PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.C), TargetIndex.C);
+					Log.Message("FOUND");
+					//gizmoList.AddRange(GetMyGizmos(objList));
+					yield return new CodeInstruction(OpCodes.Ldsfld, gizmoListInfo);
+					yield return new CodeInstruction(OpCodes.Ldsfld, objListInfo);
+					yield return new CodeInstruction(OpCodes.Call, GetMyGizmosInfo);
+					yield return new CodeInstruction(OpCodes.Call, GizmoAddRangeInfo);
 				}
-				else
-					gizmo.defaultLabel = "ActivityIconIdle".Translate();
-				
-				List<Gizmo> results = new List<Gizmo>();
-				foreach (Gizmo g in __result)
-					results.Add(g);
-				results.Add(gizmo);	//last is rightmost 
-				__result = results;
 			}
 		}
-	}
 
-	[HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
-	static class ThingWithComps_GetGizmos_Postfix
-	{
-		[HarmonyPriority(Priority.First)]
-		private static void Postfix(ThingWithComps __instance, ref IEnumerable<Gizmo> __result)
+		public static IEnumerable<Gizmo> GetPurposeGizmos(List<object> objList)
 		{
-			Log.Message("ThingWithComps postfix for " + __instance);
-			if (!Settings.Get().ShowGizmos()) return;
+			Log.Message("GetPurposeGizmos");
+			if (!Settings.Get().ShowGizmos()) yield break;
+
+			Log.Message("oblst " + objList.ToStringSafeEnumerable());
+			if (Settings.Get().purposeGizmos)
+				foreach (object obj in objList)
+					if (obj is Pawn pawn && PurposeGizmoFor(pawn) is Gizmo gizmo)
+						yield return gizmo;
+
+			if (Settings.Get().reservedGizmos)
+				foreach (object obj in objList)
+					if (obj is Thing thing && ReservedGizmoFor(thing) is Gizmo gizmo2)
+						yield return gizmo2;
+		}
+
+		private static Gizmo PurposeGizmoFor(Pawn gizmoPawn)
+		{
+			if (!gizmoPawn.IsColonistPlayerControlled)	return null;
 			
-			ThingWithComps thing = __instance;
+			Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
+
+			gizmo.selectedInfo = PurposeInfo.Make(gizmoPawn);
+			if (gizmoPawn.CurJob != null)
+			{
+				gizmo.defaultLabel = gizmoPawn.jobs.curDriver.GetReport().Split(' ').FirstOrDefault();
+				gizmo.defaultLabel.TrimEnd('.');
+				PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.A), TargetIndex.A);
+				PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.B), TargetIndex.B);
+				PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.C), TargetIndex.C);
+			}
+			else
+				gizmo.defaultLabel = "ActivityIconIdle".Translate();
+
+			return gizmo;
+		}
+
+		private static Gizmo ReservedGizmoFor(Thing thing)
+		{
 			Pawn sampleColonist = thing.Map?.mapPawns?.FreeColonists?.FirstOrDefault();
-			if (sampleColonist == null) return;
-			Log.Message("sampleColonist  is " + sampleColonist);
-			Log.Message("thing.Map  is " + thing.Map);
+			if (sampleColonist == null) return null;
 
 			Pawn reserver = thing.Map?.reservationManager?.FirstRespectedReserver(thing, sampleColonist);
-			if (reserver == null) return;
-			Log.Message("reserver  is " + reserver);
+			if (reserver == null) return null;
 
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
@@ -288,12 +311,8 @@ namespace What_Is_My_Purpose
 				//defaultLabel = reserver.NameStringShort
 			};
 			PurposeInfo.AddTargetToGizmo(gizmo, reserver);
-
-			List<Gizmo> results = new List<Gizmo>();
-			results.Add(gizmo);		//first is leftmost
-			foreach (Gizmo g in __result)
-				results.Add(g);
-			__result = results;
+			
+			return gizmo;   //first is leftmost
 		}
 	}
 }

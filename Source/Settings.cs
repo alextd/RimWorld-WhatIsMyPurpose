@@ -9,6 +9,8 @@ namespace What_Is_My_Purpose
 	class Settings : ModSettings
 	{
 		public int multiGizmoLimit = 6;
+		public bool purposeGizmos = true;
+		public bool reservedGizmos = true;
 
 		public static Settings Get()
 		{
@@ -25,13 +27,12 @@ namespace What_Is_My_Purpose
 		{
 			var options = new Listing_Standard();
 			options.Begin(wrect);
-			
+
+			options.CheckboxLabeled("Show gizmo showing colonist's job", ref purposeGizmos);
+			options.CheckboxLabeled("Show gizmo showing who is using a thing", ref reservedGizmos);
+
 			options.Label(String.Format("Show Target Gizmo with up to this many selected: {0}", multiGizmoLimit));
 			multiGizmoLimit = (int)options.Slider(multiGizmoLimit, 1, 100);
-
-			options.Label("(The order of gizmos from other mods can be erratic ; blame the game for not providing gizmo ordering)");
-
-			options.Gap();
 
 			options.End();
 		}
@@ -39,6 +40,8 @@ namespace What_Is_My_Purpose
 		public override void ExposeData()
 		{
 			Scribe_Values.Look(ref multiGizmoLimit, "multiGizmoLimit", 6);
+			Scribe_Values.Look(ref purposeGizmos, "purposeGizmos", true);
+			Scribe_Values.Look(ref reservedGizmos, "reservedGizmos", true);
 		}
 	}
 }
