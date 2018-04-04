@@ -303,7 +303,7 @@ namespace What_Is_My_Purpose
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
 				selectedInfo = PurposeInfo.Make(thing),
-				defaultLabel = "Reserved"
+				defaultLabel = "Reserved".Translate()
 				//defaultLabel = reserver.NameStringShort
 			};
 			PurposeInfo.AddTargetToGizmo(gizmo, reserver);
