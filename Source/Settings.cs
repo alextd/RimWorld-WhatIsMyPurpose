@@ -29,10 +29,10 @@ namespace What_Is_My_Purpose
 			var options = new Listing_Standard();
 			options.Begin(wrect);
 
-			options.CheckboxLabeled("SettingColonistGizmo".Translate(), ref purposeGizmos);
-			options.CheckboxLabeled("SettingTargetGizmo".Translate(), ref reservedGizmos);
+			options.CheckboxLabeled("TD.SettingColonistGizmo".Translate(), ref purposeGizmos);
+			options.CheckboxLabeled("TD.SettingTargetGizmo".Translate(), ref reservedGizmos);
 
-			options.Label(String.Format("SettingMultiGizmos".Translate(), multiGizmoLimit));
+			options.Label(String.Format("TD.SettingMultiGizmos".Translate(), multiGizmoLimit));
 			multiGizmoLimit = (int)options.Slider(multiGizmoLimit, 1, 100);
 
 			options.End();

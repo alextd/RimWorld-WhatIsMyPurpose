@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 	
-	<SettingColonistGizmo>Gizmo showing selected colonist's job</SettingColonistGizmo>
-	<SettingTargetGizmo>Gizmo showing who is using a selected thing</SettingTargetGizmo>
-	<SettingMultiGizmos>Show Target Gizmo with up to this many selected: {0}</SettingMultiGizmos>
-	<Reserved>Reserved</Reserved>
-	<WhatIsMyPurpose>What Is My Purpose</WhatIsMyPurpose>
+	<TD.SettingColonistGizmo>Gizmo showing selected colonist's job</TD.SettingColonistGizmo>
+	<TD.SettingTargetGizmo>Gizmo showing who is using a selected thing</TD.SettingTargetGizmo>
+	<TD.SettingMultiGizmos>Show Target Gizmo with up to this many selected: {0}</TD.SettingMultiGizmos>
+	<TD.Reserved>Reserved</TD.Reserved>
+	<TD.WhatIsMyPurpose>What Is My Purpose</TD.WhatIsMyPurpose>
 	
 </LanguageData>

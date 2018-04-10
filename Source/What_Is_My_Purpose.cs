@@ -29,7 +29,7 @@ namespace What_Is_My_Purpose
 
 		public override string SettingsCategory()
 		{
-			return "WhatIsMyPurpose".Translate();
+			return "TD.WhatIsMyPurpose".Translate();
 		}
 	}
 }

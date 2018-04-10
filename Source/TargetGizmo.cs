@@ -287,7 +287,7 @@ namespace What_Is_My_Purpose
 				PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.C), TargetIndex.C);
 			}
 			else
-				gizmo.defaultLabel = "ActivityIconIdle".Translate();
+				gizmo.defaultLabel = "TD.ActivityIconIdle".Translate();
 
 			return gizmo;
 		}
@@ -303,7 +303,7 @@ namespace What_Is_My_Purpose
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
 				selectedInfo = PurposeInfo.Make(thing),
-				defaultLabel = "Reserved".Translate()
+				defaultLabel = "TD.Reserved".Translate()
 				//defaultLabel = reserver.NameStringShort
 			};
 			PurposeInfo.AddTargetToGizmo(gizmo, reserver);
