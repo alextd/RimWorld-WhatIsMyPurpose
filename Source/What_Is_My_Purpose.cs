@@ -10,7 +10,7 @@ namespace What_Is_My_Purpose
 		public Mod(ModContentPack content) : base(content)
 		{
 			// initialize settings
-			// GetSettings<Settings>();
+			GetSettings<Settings>();
 #if DEBUG
 			HarmonyInstance.DEBUG = true;
 #endif
