@@ -101,7 +101,7 @@ namespace What_Is_My_Purpose
 						if (buildThing.UIStuff() != null)
 							purposeInfo.color = buildThing.UIStuff().stuffProps.color;
 						else
-							purposeInfo.color = def.IconDrawColor;
+							purposeInfo.color = def.uiIconColor;
 					}
 
 					purposeInfo.icon = def.uiIcon;
@@ -139,7 +139,7 @@ namespace What_Is_My_Purpose
 		{
 			base.ProcessInput(ev);
 			if (clickedPos != null)
-				Current.CameraDriver.JumpToVisibleMapLoc(clickedPos.Value);
+				Current.CameraDriver.JumpToCurrentMapLoc(clickedPos.Value);
 		}
 
 		public void SetTarget(TargetIndex ind, PurposeInfo info)
@@ -152,12 +152,12 @@ namespace What_Is_My_Purpose
 			}
 		}
 
-		public override GizmoResult GizmoOnGUI(Vector2 topLeft)
+		public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth)
 		{
 			bool clicked = false;
 			clickedPos = null;
 			
-			Rect rect = new Rect(topLeft.x, topLeft.y, Width, Height);
+			Rect rect = new Rect(topLeft.x, topLeft.y, GetWidth(maxWidth), Height);
 			GUI.color = Color.white;
 			GUI.DrawTexture(rect, Command.BGTex);
 
@@ -169,7 +169,7 @@ namespace What_Is_My_Purpose
 			{
 				topLeft.x += 1;
 				topLeft.y += 1;
-				float halfW = this.Width / 2 - 2;
+				float halfW = GetWidth(maxWidth) / 2 - 2;
 
 				Rect rectPortrait = new Rect(topLeft.x, topLeft.y, halfW, halfW);
 				Rect rectA = new Rect(topLeft.x + halfW, topLeft.y, halfW, halfW);
@@ -213,7 +213,7 @@ namespace What_Is_My_Purpose
 				GUI.color = GenUI.MouseoverColor;
 			else
 				GUI.color = purposeInfo.color;
-			Verse.Sound.MouseoverSounds.DoRegion(rect, SoundDefOf.MouseoverCommand);
+			Verse.Sound.MouseoverSounds.DoRegion(rect, SoundDefOf.Mouseover_Command);
 			//GUI.DrawTexture(rect, Command.BGTex);
 			Widgets.DrawTextureFitted(rect, icon, scale * purposeInfo.scale, purposeInfo.proportions, purposeInfo.texCoords);
 
