@@ -38,11 +38,10 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="0Harmony">
-      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
       <HintPath>..\ThirdParty\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="System">
-      <Private>False</Private>
     </Reference>
     <Reference Include="System.Core">
       <Private>False</Private>
