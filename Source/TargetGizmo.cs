@@ -271,9 +271,18 @@ namespace What_Is_My_Purpose
 						yield return gizmo2;
 		}
 
+		public static bool ShouldDrawGizmoFor(Pawn gizmoPawn)
+		{
+			return gizmoPawn.IsColonistPlayerControlled || 
+				((gizmoPawn.Faction?.IsPlayer ?? false) &&
+				 (gizmoPawn.CurJob?.def == JobDefOf.HaulToCell ||
+				 gizmoPawn.CurJob?.def == JobDefOf.HaulToContainer));
+		}
+
 		private static Gizmo PurposeGizmoFor(Pawn gizmoPawn)
 		{
-			if (!gizmoPawn.IsColonistPlayerControlled)	return null;
+			if (!ShouldDrawGizmoFor(gizmoPawn))
+				return null;
 			
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
 
