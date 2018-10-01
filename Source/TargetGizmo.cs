@@ -230,7 +230,7 @@ namespace What_Is_My_Purpose
 	}
 	
 
-	//[HarmonyPatch(AccessTools.TypeByName("InspectGizmoGrid"), "DrawInspectGizmoGridFor")]
+	[HarmonyPatch(typeof(InspectGizmoGrid), "DrawInspectGizmoGridFor")]
 	static class DrawInspectGizmoGridFor_Patch
 	{
 		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
