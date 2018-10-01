@@ -15,7 +15,7 @@ namespace What_Is_My_Purpose
 			HarmonyInstance.DEBUG = true;
 #endif
 			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.What_Is_My_Purpose.main");
-			harmony.PatchAll(Assembly.GetExecutingAssembly());
+			harmony.PatchAll();
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)
