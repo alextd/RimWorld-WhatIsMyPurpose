@@ -135,6 +135,11 @@ namespace What_Is_My_Purpose
 		public PurposeInfo targetC = new PurposeInfo();
 		public PurposeInfo selectedInfo = new PurposeInfo();
 
+		public Command_CenterOnTarget() : base()
+		{
+			order = -50f;
+		}
+
 		public override void ProcessInput(Event ev)
 		{
 			base.ProcessInput(ev);
@@ -228,49 +233,32 @@ namespace What_Is_My_Purpose
 
 		public override bool GroupsWith(Gizmo other) => false;
 	}
-	
 
-	[HarmonyPatch(typeof(InspectGizmoGrid), "DrawInspectGizmoGridFor")]
-	static class DrawInspectGizmoGridFor_Patch
+
+	[HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
+	static class GetGizmosAdder
 	{
-		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
+		//public override IEnumerable<Gizmo> GetGizmos()
+		public static void Postfix(ref IEnumerable<Gizmo> __result, ThingWithComps __instance)
 		{
-			MethodInfo GizmoClearInfo = AccessTools.Method(typeof(List<Gizmo>), "Clear");
-			FieldInfo objListInfo = AccessTools.Field(AccessTools.TypeByName("InspectGizmoGrid"), "objList");
-			FieldInfo gizmoListInfo = AccessTools.Field(AccessTools.TypeByName("InspectGizmoGrid"), "gizmoList");
+			if (!Settings.Get().ShowGizmos()) return;
+
+			List<Gizmo> result = __result.ToList();
+
+			if (Settings.Get().purposeGizmos && __instance is Pawn pawn &&
+				PurposeGizmoAdder.PurposeGizmoFor(pawn) is Gizmo gizmo)
+				result.Add(gizmo);
 			
-			MethodInfo GizmoAddRangeInfo = AccessTools.Method(typeof(List<Gizmo>), "AddRange");
-			MethodInfo GetMyGizmosInfo = AccessTools.Method(typeof(DrawInspectGizmoGridFor_Patch), nameof(DrawInspectGizmoGridFor_Patch.GetPurposeGizmos));
+			if (Settings.Get().reservedGizmos && 
+				PurposeGizmoAdder.ReservedGizmoFor(__instance) is Gizmo gizmo2)
+				result.Add(gizmo2);
 
-			foreach (CodeInstruction i in codeInstructions)
-			{ 
-				yield return i;
-				if (i.opcode == OpCodes.Callvirt && i.operand == GizmoClearInfo)
-				{
-					//gizmoList.AddRange(GetMyGizmos(objList));
-					yield return new CodeInstruction(OpCodes.Ldsfld, gizmoListInfo);
-					yield return new CodeInstruction(OpCodes.Ldsfld, objListInfo);
-					yield return new CodeInstruction(OpCodes.Call, GetMyGizmosInfo);
-					yield return new CodeInstruction(OpCodes.Call, GizmoAddRangeInfo);
-				}
-			}
+			__result = result;
 		}
+	}
 
-		public static IEnumerable<Gizmo> GetPurposeGizmos(List<object> objList)
-		{
-			if (!Settings.Get().ShowGizmos()) yield break;
-
-			if (Settings.Get().purposeGizmos)
-				foreach (object obj in objList)
-					if (obj is Pawn pawn && PurposeGizmoFor(pawn) is Gizmo gizmo)
-						yield return gizmo;
-
-			if (Settings.Get().reservedGizmos)
-				foreach (object obj in objList)
-					if (obj is Thing thing && ReservedGizmoFor(thing) is Gizmo gizmo2)
-						yield return gizmo2;
-		}
-
+	public static class PurposeGizmoAdder
+	{
 		public static bool ShouldDrawGizmoFor(Pawn gizmoPawn)
 		{
 			return gizmoPawn.IsColonistPlayerControlled || 
@@ -279,7 +267,7 @@ namespace What_Is_My_Purpose
 				 gizmoPawn.CurJob?.def == JobDefOf.HaulToContainer));
 		}
 
-		private static Gizmo PurposeGizmoFor(Pawn gizmoPawn)
+		public static Gizmo PurposeGizmoFor(Pawn gizmoPawn)
 		{
 			if (!ShouldDrawGizmoFor(gizmoPawn))
 				return null;
@@ -296,19 +284,22 @@ namespace What_Is_My_Purpose
 				PurposeInfo.AddTargetToGizmo(gizmo, gizmoPawn.CurJob.GetTarget(TargetIndex.C), TargetIndex.C);
 			}
 			else
-				gizmo.defaultLabel = "TD.ActivityIconIdle".Translate();
+				gizmo.defaultLabel = "ActivityIconIdle".Translate();
 
 			return gizmo;
 		}
 
-		private static Gizmo ReservedGizmoFor(Thing thing)
+		public static Gizmo ReservedGizmoFor(Thing thing)
 		{
+			Log.Message($"Reserved gizmo for {thing}");
 			Pawn sampleColonist = thing.Map?.mapPawns?.FreeColonists?.FirstOrDefault();
 			if (sampleColonist == null) return null;
 
+			Log.Message($"sampleColonist {sampleColonist}");
 			Pawn reserver = thing.Map?.reservationManager?.FirstRespectedReserver(thing, sampleColonist);
 			if (reserver == null) return null;
 
+			Log.Message($"reserver {reserver}");
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
 				selectedInfo = PurposeInfo.Make(thing),
