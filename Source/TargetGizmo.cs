@@ -241,6 +241,18 @@ namespace What_Is_My_Purpose
 		//public override IEnumerable<Gizmo> GetGizmos()
 		public static void Postfix(ref IEnumerable<Gizmo> __result, ThingWithComps __instance)
 		{
+			//vanilla doesn't call base :(
+			GetGizmosAdder_Thing.Postfix(ref __result, __instance);
+		}
+	}
+
+
+	[HarmonyPatch(typeof(Thing), "GetGizmos")]
+	static class GetGizmosAdder_Thing
+	{
+		//public override IEnumerable<Gizmo> GetGizmos()
+		public static void Postfix(ref IEnumerable<Gizmo> __result, Thing __instance)
+		{
 			if (!Settings.Get().ShowGizmos()) return;
 
 			List<Gizmo> result = __result.ToList();
