@@ -130,14 +130,40 @@ namespace What_Is_My_Purpose
 	{
 		public Vector3? clickedPos;
 
+		public Pawn pawn;
+
 		public PurposeInfo targetA = new PurposeInfo();
 		public PurposeInfo targetB = new PurposeInfo();
 		public PurposeInfo targetC = new PurposeInfo();
 		public PurposeInfo selectedInfo = new PurposeInfo();
 
+		public Command_CenterOnTarget(Pawn p) : this()
+		{
+			pawn = p;
+		}
 		public Command_CenterOnTarget() : base()
 		{
 			order = -50f;
+		}
+
+		public override IEnumerable<FloatMenuOption> RightClickFloatMenuOptions
+		{
+			get
+			{
+				foreach (FloatMenuOption o in base.RightClickFloatMenuOptions)
+				{
+					yield return o;
+				}
+				yield return new FloatMenuOption("Select all reserved things", SelectAllReserved);
+			}
+		}
+
+		public void SelectAllReserved()
+		{
+			Find.Selector.ClearSelection();
+			ReservationManager res = pawn.Map.reservationManager;
+			foreach(Thing thing in res.AllReservedThings().Where(t => res.ReservedBy(t, pawn)))
+				Find.Selector.Select(thing);
 		}
 
 		public override void ProcessInput(Event ev)
@@ -199,6 +225,8 @@ namespace What_Is_My_Purpose
 			Widgets.Label(rectLabel, LabelCap);
 			Text.Anchor = TextAnchor.UpperLeft;
 
+			if (Widgets.ButtonInvisible(rect, false) && Event.current.button == 1)
+				return new GizmoResult(GizmoState.OpenedFloatMenu, Event.current);
 			if (clicked)
 				return new GizmoResult(GizmoState.Interacted, Event.current);
 			else if (Mouse.IsOver(rect))
@@ -284,7 +312,7 @@ namespace What_Is_My_Purpose
 			if (!ShouldDrawGizmoFor(gizmoPawn))
 				return null;
 			
-			Command_CenterOnTarget gizmo = new Command_CenterOnTarget();
+			Command_CenterOnTarget gizmo = new Command_CenterOnTarget(gizmoPawn);
 
 			gizmo.selectedInfo = PurposeInfo.Make(gizmoPawn);
 			if (gizmoPawn.CurJob != null)
@@ -303,15 +331,12 @@ namespace What_Is_My_Purpose
 
 		public static Gizmo ReservedGizmoFor(Thing thing)
 		{
-			Log.Message($"Reserved gizmo for {thing}");
 			Pawn sampleColonist = thing.Map?.mapPawns?.FreeColonists?.FirstOrDefault();
 			if (sampleColonist == null) return null;
 
-			Log.Message($"sampleColonist {sampleColonist}");
 			Pawn reserver = thing.Map?.reservationManager?.FirstRespectedReserver(thing, sampleColonist);
 			if (reserver == null) return null;
 
-			Log.Message($"reserver {reserver}");
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
 				selectedInfo = PurposeInfo.Make(thing),
