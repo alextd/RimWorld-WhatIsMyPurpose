@@ -162,7 +162,7 @@ namespace What_Is_My_Purpose
 		{
 			Find.Selector.ClearSelection();
 			ReservationManager res = pawn.Map.reservationManager;
-			foreach(Thing thing in res.AllReservedThings().Where(t => res.ReservedBy(t, pawn)))
+			foreach(Thing thing in res.AllReservedThings().Where(t => res.ReservedBy(t, pawn) && t.Spawned))
 				Find.Selector.Select(thing);
 		}
 
