@@ -6,5 +6,6 @@
 	<TD.SettingMultiGizmos>Show Target Gizmo with up to this many selected: {0}</TD.SettingMultiGizmos>
 	<TD.Reserved>Reserved</TD.Reserved>
 	<TD.WhatIsMyPurpose>What Is My Purpose</TD.WhatIsMyPurpose>
+	<TD.SelectAllReservedThings>Select all reserved things</TD.SelectAllReservedThings>
 	
 </LanguageData>

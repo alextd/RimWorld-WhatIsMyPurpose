@@ -154,7 +154,7 @@ namespace What_Is_My_Purpose
 				{
 					yield return o;
 				}
-				yield return new FloatMenuOption("Select all reserved things", SelectAllReserved);
+				yield return new FloatMenuOption("TD.SelectAllReservedThings".Translate(), SelectAllReserved);
 			}
 		}
 
