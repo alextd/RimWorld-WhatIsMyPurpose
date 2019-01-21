@@ -2,7 +2,9 @@
 <ModMetaData>
 	<name>What Is My Purpose</name>
 	<author>Uuugggg</author>
-	<targetVersion>1.0.0</targetVersion>
+	<supportedVersions>
+		<li>1.0.0</li>
+	</supportedVersions>
 	<description>See your pawn's target, and click to look at it.
 
 Also, your target shows who is targeting it: "I Am Whose Purpose"
