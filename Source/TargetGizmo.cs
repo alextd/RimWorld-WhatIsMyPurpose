@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
-using Harmony;
+using HarmonyLib;
 using UnityEngine;
 using RimWorld;
 
@@ -98,8 +98,8 @@ namespace What_Is_My_Purpose
 					if (target is IConstructible buildThing)
 					{
 						def = target.def.entityDefToBuild;
-						if (buildThing.UIStuff() != null)
-							purposeInfo.color = buildThing.UIStuff().stuffProps.color;
+						if (buildThing.EntityToBuildStuff() != null)
+							purposeInfo.color = buildThing.EntityToBuildStuff().stuffProps.color;
 						else
 							purposeInfo.color = def.uiIconColor;
 					}

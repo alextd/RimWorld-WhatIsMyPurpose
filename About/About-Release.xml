@@ -4,7 +4,9 @@
 	<author>Uuugggg</author>
 	<supportedVersions>
 		<li>1.0</li>
+		<li>1.1</li>
 	</supportedVersions>
+	<packageId>Uuugggg.WhatIsMyPurpose</packageId>
 	<description>See your pawn's target, and click to look at it.
 
 Also, your target shows who is targeting it: "I Am Whose Purpose"

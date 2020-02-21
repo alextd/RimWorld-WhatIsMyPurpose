@@ -2,7 +2,7 @@
 using System.Linq;
 using Verse;
 using UnityEngine;
-using Harmony;
+using HarmonyLib;
 using RimWorld;
 
 namespace What_Is_My_Purpose
@@ -14,9 +14,9 @@ namespace What_Is_My_Purpose
 			// initialize settings
 			GetSettings<Settings>();
 #if DEBUG
-			HarmonyInstance.DEBUG = true;
+			Harmony.DEBUG = true;
 #endif
-			HarmonyInstance harmony = HarmonyInstance.Create("Uuugggg.rimworld.What_Is_My_Purpose.main");
+			Harmony harmony = new Harmony("Uuugggg.rimworld.What_Is_My_Purpose.main");
 			
 			//Turn off DefOf warning since harmony patches trigger it.
 			MethodInfo DefOfHelperInfo = AccessTools.Method(typeof(DefOfHelper), "EnsureInitializedInCtor");
