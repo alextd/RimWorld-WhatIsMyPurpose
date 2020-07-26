@@ -46,6 +46,7 @@ namespace What_Is_My_Purpose
 		public static void AddTargetToGizmo(Command_CenterOnTarget gizmo, LocalTargetInfo targetInfo, TargetIndex ind = TargetIndex.A)
 		{
 			PurposeInfo purposeInfo = Make(targetInfo);
+			if (purposeInfo == null) return;
 			if (targetInfo.HasThing && purposeInfo.pos == null)
 				purposeInfo.pos = gizmo.selectedInfo.pos;
 			if (purposeInfo.IsUsed())
@@ -56,73 +57,81 @@ namespace What_Is_My_Purpose
 
 		public static PurposeInfo Make(LocalTargetInfo targetInfo)
 		{
-			PurposeInfo purposeInfo = new PurposeInfo();
-			if(targetInfo.IsValid)
+			//reports of nullrefs in here for somereason.
+			try
 			{
-				purposeInfo.pos = targetInfo.CenterVector3;
-			}
-			if (targetInfo.Thing is Thing target)
-			{
-				target = MinifyUtility.GetInnerIfMinified(target);
-				BuildableDef def = target.def;
-
-				purposeInfo.pos = target.DrawPos;
-				purposeInfo.color = target.DrawColor;
-
-				if (target is Pawn || target is Corpse)
+				PurposeInfo purposeInfo = new PurposeInfo();
+				if (targetInfo.IsValid)
 				{
-					Pawn pawn = target as Pawn;
-					if (pawn == null)
+					purposeInfo.pos = targetInfo.CenterVector3;
+				}
+				if (targetInfo.Thing is Thing target)
+				{
+					target = MinifyUtility.GetInnerIfMinified(target);
+					BuildableDef def = target.def;
+
+					purposeInfo.pos = target.DrawPos;
+					purposeInfo.color = target.DrawColor;
+
+					if (target is Pawn || target is Corpse)
 					{
-						pawn = ((Corpse)target).InnerPawn;
-					}
-					if (!pawn.RaceProps.Humanlike)
-					{
-						//This seems unnecessary
-						//if (!pawn.Drawer.renderer.graphics.AllResolved)
-						//{
-						//	pawn.Drawer.renderer.graphics.ResolveAllGraphics();
-						//}
-						Material matSingle = pawn.Drawer.renderer.graphics.nakedGraphic.MatSingle;
-						purposeInfo.icon = matSingle.mainTexture;
-						purposeInfo.color = matSingle.color;
+						Pawn pawn = target as Pawn;
+						if (pawn == null)
+						{
+							pawn = ((Corpse)target).InnerPawn;
+						}
+						if (!pawn.RaceProps.Humanlike)
+						{
+							//This seems unnecessary
+							//if (!pawn.Drawer.renderer.graphics.AllResolved)
+							//{
+							//	pawn.Drawer.renderer.graphics.ResolveAllGraphics();
+							//}
+							Material matSingle = pawn.Drawer.renderer.graphics.nakedGraphic.MatSingle;
+							purposeInfo.icon = matSingle.mainTexture;
+							purposeInfo.color = matSingle.color;
+						}
+						else
+						{
+							purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
+						}
+						purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
 					}
 					else
 					{
-						purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
-					}
-					purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
-				}
-				else
-				{
-					if (target is IConstructible buildThing)
-					{
-						def = target.def.entityDefToBuild;
-						if (buildThing.EntityToBuildStuff() != null)
-							purposeInfo.color = buildThing.EntityToBuildStuff().stuffProps.color;
-						else
-							purposeInfo.color = def.uiIconColor;
-					}
+						if (target is IConstructible buildThing)
+						{
+							def = target.def.entityDefToBuild;
+							if (buildThing.EntityToBuildStuff() != null)
+								purposeInfo.color = buildThing.EntityToBuildStuff().stuffProps.color;
+							else
+								purposeInfo.color = def.uiIconColor;
+						}
 
-					purposeInfo.icon = def.uiIcon;
+						purposeInfo.icon = def.uiIcon;
 
-					if (def is ThingDef td)
-					{
-						purposeInfo.proportions = td.graphicData.drawSize;
-						purposeInfo.scale = GenUI.IconDrawScale(td);
-					}
+						if (def is ThingDef td)
+						{
+							purposeInfo.proportions = td.graphicData.drawSize;
+							purposeInfo.scale = GenUI.IconDrawScale(td);
+						}
 
-					if (def is TerrainDef)
-						//private static readonly Vector2 TerrainTextureCroppedSize = new Vector2(64f, 64f);
-						purposeInfo.texCoords = new Rect(0f, 0f, 64f / purposeInfo.icon.width, 64f / purposeInfo.icon.height);
-					else if (def.uiIconPath.NullOrEmpty())
-					{
-						Material iconMat = def.graphic.MatSingle;
-						purposeInfo.texCoords = new Rect(iconMat.mainTextureOffset, iconMat.mainTextureScale);
+						if (def is TerrainDef)
+							//private static readonly Vector2 TerrainTextureCroppedSize = new Vector2(64f, 64f);
+							purposeInfo.texCoords = new Rect(0f, 0f, 64f / purposeInfo.icon.width, 64f / purposeInfo.icon.height);
+						else if (def.uiIconPath.NullOrEmpty())
+						{
+							Material iconMat = def.graphic.MatSingle;
+							purposeInfo.texCoords = new Rect(iconMat.mainTextureOffset, iconMat.mainTextureScale);
+						}
 					}
 				}
+				return purposeInfo;
 			}
-			return purposeInfo;
+			catch(NullReferenceException )
+			{
+				return null;
+			}
 		}
 	}
 	//Also known as Command_CenterOnReserver
@@ -314,7 +323,8 @@ namespace What_Is_My_Purpose
 			
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget(gizmoPawn);
 
-			gizmo.selectedInfo = PurposeInfo.Make(gizmoPawn);
+			if(PurposeInfo.Make(gizmoPawn) is PurposeInfo info)
+				gizmo.selectedInfo = info;
 			if (gizmoPawn.CurJob != null)
 			{
 				gizmo.defaultLabel = gizmoPawn.jobs.curDriver.GetReport().Split(' ').FirstOrDefault();
@@ -339,10 +349,11 @@ namespace What_Is_My_Purpose
 
 			Command_CenterOnTarget gizmo = new Command_CenterOnTarget()
 			{
-				selectedInfo = PurposeInfo.Make(thing),
 				defaultLabel = "TD.Reserved".Translate()
 				//defaultLabel = reserver.NameStringShort
 			};
+			if (PurposeInfo.Make(thing) is PurposeInfo info)
+				gizmo.selectedInfo = info;
 			PurposeInfo.AddTargetToGizmo(gizmo, reserver);
 			
 			return gizmo;   //first is leftmost
