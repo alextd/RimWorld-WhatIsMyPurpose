@@ -272,14 +272,14 @@ namespace What_Is_My_Purpose
 	}
 
 
-	[HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
+		[HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
 	static class GetGizmosAdder
 	{
 		//public override IEnumerable<Gizmo> GetGizmos()
-		public static void Postfix(ref IEnumerable<Gizmo> __result, ThingWithComps __instance)
+		public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, ThingWithComps __instance)
 		{
 			//vanilla doesn't call base :(
-			GetGizmosAdder_Thing.Postfix(ref __result, __instance);
+			return GetGizmosAdder_Thing.Postfix(__result, __instance);
 		}
 	}
 
@@ -288,21 +288,22 @@ namespace What_Is_My_Purpose
 	static class GetGizmosAdder_Thing
 	{
 		//public override IEnumerable<Gizmo> GetGizmos()
-		public static void Postfix(ref IEnumerable<Gizmo> __result, Thing __instance)
+		public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, Thing __instance)
 		{
-			if (!Settings.Get().ShowGizmos()) return;
+			foreach (var gizmo in __result) yield return gizmo;
 
-			List<Gizmo> result = __result.ToList();
+			if (Settings.Get().ShowGizmos())
+			{
 
 			if (Settings.Get().purposeGizmos && __instance is Pawn pawn &&
-				PurposeGizmoAdder.PurposeGizmoFor(pawn) is Gizmo gizmo)
-				result.Add(gizmo);
-			
-			if (Settings.Get().reservedGizmos && 
-				PurposeGizmoAdder.ReservedGizmoFor(__instance) is Gizmo gizmo2)
-				result.Add(gizmo2);
+				PurposeGizmoAdder.PurposeGizmoFor(pawn) is Gizmo gizmo1)
+				yield return gizmo1;
 
-			__result = result;
+			if (Settings.Get().reservedGizmos &&
+				PurposeGizmoAdder.ReservedGizmoFor(__instance) is Gizmo gizmo2)
+				yield return gizmo2;
+
+			}
 		}
 	}
 
