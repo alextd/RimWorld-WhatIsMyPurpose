@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -93,7 +93,8 @@ namespace What_Is_My_Purpose
 						}
 						else
 						{
-							purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
+							purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default, default(Vector3), 1.5f, true, true, false, true, null, null, false);
+							//purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
 						}
 						purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
 					}
@@ -192,8 +193,9 @@ namespace What_Is_My_Purpose
 			}
 		}
 
-		public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth)
+		public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
 		{
+			new GizmoRenderParms();
 			bool clicked = false;
 			clickedPos = null;
 			
@@ -361,3 +363,4 @@ namespace What_Is_My_Purpose
 		}
 	}
 }
+
