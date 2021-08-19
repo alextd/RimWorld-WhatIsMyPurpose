@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace What_Is_My_Purpose
+﻿namespace What_Is_My_Purpose
 {
-	static class Log
+  static class Log
+  {
+	[System.Diagnostics.Conditional("DEBUG")]
+	public static void Message(string x)
 	{
-		[System.Diagnostics.Conditional("DEBUG")]
-		public static void Message(string x)
-		{
-			Verse.Log.Message(x);
-		}
+	  Verse.Log.Message(x);
 	}
+  }
 }
