@@ -93,7 +93,7 @@ namespace What_Is_My_Purpose
 						}
 						else
 						{
-							purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
+							purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, Rot4.South, cameraZoom: 1.5f);
 						}
 						purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
 					}
@@ -192,7 +192,7 @@ namespace What_Is_My_Purpose
 			}
 		}
 
-		public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth)
+		public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
 		{
 			bool clicked = false;
 			clickedPos = null;
@@ -269,18 +269,6 @@ namespace What_Is_My_Purpose
 		}
 
 		public override bool GroupsWith(Gizmo other) => false;
-	}
-
-
-		[HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
-	static class GetGizmosAdder
-	{
-		//public override IEnumerable<Gizmo> GetGizmos()
-		public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, ThingWithComps __instance)
-		{
-			//vanilla doesn't call base :(
-			return GetGizmosAdder_Thing.Postfix(__result, __instance);
-		}
 	}
 
 
