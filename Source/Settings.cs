@@ -10,7 +10,7 @@ namespace What_Is_My_Purpose
 	public int multiGizmoLimit = 6;
 	public bool purposeGizmos = true;
 	public bool reservedGizmos = true;
-
+	
 	public static Settings Get()
 	{
 	  return LoadedModManager.GetMod<What_Is_My_Purpose.Mod>().GetSettings<Settings>();
@@ -30,7 +30,6 @@ namespace What_Is_My_Purpose
 
 	  options.CheckboxLabeled("TD.SettingColonistGizmo".Translate(), ref purposeGizmos);
 	  options.CheckboxLabeled("TD.SettingTargetGizmo".Translate(), ref reservedGizmos);
-
 	  options.Label(String.Format("TD.SettingMultiGizmos".Translate(), multiGizmoLimit));
 	  multiGizmoLimit = (int)options.Slider(multiGizmoLimit, 1, 100);
 

@@ -72,8 +72,7 @@ namespace What_Is_My_Purpose
 
 		  if (target is Pawn || target is Corpse)
 		  {
-			Pawn pawn = target as Pawn;
-			if (pawn == null)
+			if (!(target is Pawn pawn))
 			{
 			  pawn = ((Corpse)target).InnerPawn;
 			}
@@ -90,7 +89,7 @@ namespace What_Is_My_Purpose
 			}
 			else
 			{
-			  purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default, default(Vector3), 1.5f, true, true, false, true, null, null, false);
+			  purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, Rot4.South, default, 1.5f, true, true, false, true, null, null, false);
 			  //purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, default(Vector3), 1.5f);
 			}
 			purposeInfo.proportions = new Vector2(purposeInfo.icon.width, purposeInfo.icon.height);
@@ -270,12 +269,13 @@ namespace What_Is_My_Purpose
 	public override bool GroupsWith(Gizmo other) => false;
   }
 
-  [HarmonyPatch(typeof(Thing), "GetGizmos")]
-  static class GetGizmosAdder_Thing
+  [HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
+  static class GetGizmosAdder
   {
 	//public override IEnumerable<Gizmo> GetGizmos()
-	public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, Thing __instance)
+	public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, ThingWithComps __instance)
 	{
+	  //vanilla doesn't call base :(
 	  foreach (var gizmo in __result) yield return gizmo;
 
 	  if (Settings.Get().ShowGizmos())
@@ -288,7 +288,6 @@ namespace What_Is_My_Purpose
 		if (Settings.Get().reservedGizmos &&
 			PurposeGizmoAdder.ReservedGizmoFor(__instance) is Gizmo gizmo2)
 		  yield return gizmo2;
-
 	  }
 	}
   }
@@ -297,17 +296,20 @@ namespace What_Is_My_Purpose
   {
 	public static bool ShouldDrawGizmoFor(Pawn gizmoPawn)
 	{
-	  return gizmoPawn.IsColonistPlayerControlled ||
-		  ((gizmoPawn.Faction?.IsPlayer ?? false) &&
-		   (gizmoPawn.CurJob?.def == JobDefOf.HaulToCell ||
-		   gizmoPawn.CurJob?.def == JobDefOf.HaulToContainer));
+		return gizmoPawn.IsColonistPlayerControlled ||
+	((gizmoPawn.Faction?.IsPlayer ?? false) &&
+	 (gizmoPawn.CurJob?.def == JobDefOf.HaulToCell ||
+	 gizmoPawn.CurJob?.def == JobDefOf.HaulToContainer));
+	  
 	}
 
 	public static Gizmo PurposeGizmoFor(Pawn gizmoPawn)
 	{
-	  if (!ShouldDrawGizmoFor(gizmoPawn))
-		return null;
-
+			if (!ShouldDrawGizmoFor(gizmoPawn))
+			{
+				Log.Message("Target isn't a valid Purpose Gizmo thingy");
+				return null;
+			}
 	  Command_CenterOnTarget gizmo = new Command_CenterOnTarget(gizmoPawn);
 
 	  if (PurposeInfo.Make(gizmoPawn) is PurposeInfo info)
