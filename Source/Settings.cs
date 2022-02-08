@@ -6,16 +6,11 @@ using RimWorld;
 
 namespace What_Is_My_Purpose
 {
-	class Settings : ModSettings
+	public class Settings : ModSettings
 	{
 		public int multiGizmoLimit = 6;
 		public bool purposeGizmos = true;
 		public bool reservedGizmos = true;
-
-		public static Settings Get()
-		{
-			return LoadedModManager.GetMod<What_Is_My_Purpose.Mod>().GetSettings<Settings>();
-		}
 
 		public bool ShowGizmos()
 		{

@@ -280,14 +280,14 @@ namespace What_Is_My_Purpose
 		{
 			foreach (var gizmo in __result) yield return gizmo;
 
-			if (Settings.Get().ShowGizmos())
+			if (Mod.settings.ShowGizmos())
 			{
 
-			if (Settings.Get().purposeGizmos && __instance is Pawn pawn &&
+			if (Mod.settings.purposeGizmos && __instance is Pawn pawn &&
 				PurposeGizmoAdder.PurposeGizmoFor(pawn) is Gizmo gizmo1)
 				yield return gizmo1;
 
-			if (Settings.Get().reservedGizmos &&
+			if (Mod.settings.reservedGizmos &&
 				PurposeGizmoAdder.ReservedGizmoFor(__instance) is Gizmo gizmo2)
 				yield return gizmo2;
 
