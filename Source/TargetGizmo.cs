@@ -152,7 +152,7 @@ namespace What_Is_My_Purpose
 		}
 		public Command_CenterOnTarget() : base()
 		{
-			order = -50f;
+			Order = -50f;
 		}
 
 		public override IEnumerable<FloatMenuOption> RightClickFloatMenuOptions
