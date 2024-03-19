@@ -80,6 +80,8 @@ namespace What_Is_My_Purpose
 						{
 							pawn = ((Corpse)target).InnerPawn;
 						}
+						/*
+						 * 1.5 removed renderer.graphics. Is this just not needed anymore?
 						if (!pawn.RaceProps.Humanlike)
 						{
 							//This seems unnecessary
@@ -87,11 +89,12 @@ namespace What_Is_My_Purpose
 							//{
 							//	pawn.Drawer.renderer.graphics.ResolveAllGraphics();
 							//}
-							Material matSingle = pawn.Drawer.renderer.graphics.nakedGraphic.MatSingle;
+							Material matSingle = pawn.Drawer.renderer.gra graphics.nakedGraphic.MatSingle;
 							purposeInfo.icon = matSingle.mainTexture;
 							purposeInfo.color = matSingle.color;
 						}
 						else
+						*/
 						{
 							purposeInfo.icon = PortraitsCache.Get(pawn, Vector2.one * Gizmo.Height, Rot4.South, cameraZoom: 1.5f);
 						}
